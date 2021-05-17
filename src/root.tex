@@ -1,0 +1,45 @@
+\documentclass{beamer}
+
+\usepackage{subfigure}
+\renewcommand*{\subcapsize}{\tiny}
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{bib/main.bib}
+
+\newcommand\fixme[2][FIXME]{\textcolor{red}{\textbf{#1:} #2}}
+\usepackage[labelsep=space]{caption}
+\usepackage[ruled, vlined, linesnumbered]{algorithm2e}
+
+\SetKwInput{KwInput}{Input}
+\SetKwInput{KwOutput}{Output}
+
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\usetheme[subsectionpage=progressbar, progressbar=frametitle]{metropolis}
+\setbeamerfont{footnote}{size=\tiny}
+
+\definecolor{turquoise}{RGB}{64,224,208}
+\definecolor{turqbrown}{RGB}{92,80,60}
+\setbeamercolor{progress bar}{fg=turquoise}
+\setbeamercolor{normal text}{fg=turqbrown}
+\title{Research Update}
+\author{W. Cannon Lewis II}
+
+\date{May 19, 2021}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Motivation}
+
+\section{Piecewise-Affine Reinforcement Learning}
+
+\section{Stability of Learned Controllers}
+
+\section{Future Work}
+
+
+
+\end{document}
