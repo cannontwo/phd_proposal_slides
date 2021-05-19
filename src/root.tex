@@ -1,7 +1,6 @@
 \documentclass{beamer}
 
-\usepackage{subfigure}
-\renewcommand*{\subcapsize}{\tiny}
+\usepackage{subcaption}
 \usepackage[backend=bibtex]{biblatex}
 \addbibresource{bib/main.bib}
 
@@ -37,7 +36,7 @@
 \begin{frame}{Industrial Robotics}
   Industrial robots are heavy, dangerous, and expensive
 
-  \fixme{Picture}
+  \includegraphics[keepaspectratio,width=\textwidth]{assets/factory_robots}
 \end{frame}
 
 \begin{frame}{Hardware Solving Software}
@@ -50,24 +49,29 @@
 \end{frame}
 
 \begin{frame}{Beyond Industrial Robots}
-  Agile robots like Spot are still expensive and use preprogrammed gaits.
+  Agile robots like Spot are still expensive and require extensive human guidance.
 
-  \fixme{Picture}
+  \begin{center}
+    \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/spotmini}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Learning to the Rescue?}
   There has been a lot of interest in learning for robot control and motion
   planning recently.
 
-  \fixme{Picture (Google Arm Farm)}
+  \begin{center}
+    \includegraphics[keepaspectratio,width=\textwidth]{assets/openai_hand}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Big Data and Large Models}
   Deep learning leads us right back to expensive robots and questionable
   generalization. Where is learning taking place?
 
-  \fixme{Picture (Google Arm Farm, wide shot)}
-  \fixme{Picture (OpenAI hand)}
+  \begin{center}
+    \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/arm_farm}
+  \end{center}
 \end{frame}
 
 \begin{frame}{How Safe Is Your Model?}
@@ -173,7 +177,7 @@
   sampling \emph{reference points} and using a K-D Tree.\footfullcite{de1997computational}
 
   \begin{center}
-    \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/pendulum_voronoi}
+    \includegraphics[keepaspectratio,width=0.7\textwidth]{assets/pendulum_voronoi}
   \end{center}
 \end{frame}
 
@@ -261,111 +265,365 @@
 
 \subsection{Controller Optimization}
 
-\begin{frame}{Gradient-based Controller Updating}
-  \fixme{TODO}
+\begin{frame}{Local Linear Controllers}
+  We optimize a piecewise-affine controller in terms of local linear controllers defined by
+  \begin{equation}
+    \pi_i(x_t) = Kx_t + k
+  \end{equation}
 \end{frame}
 
-\begin{frame}{Line Search on Dynamics and Value}
-  \fixme{TODO}
+\begin{frame}{Gradient-based Controller Updating}
+  It is easy to compute empirical gradients of $V$ with respect to the local
+  controller parameters $K$ and $k$ that apply at a state $x_t$:
+  \begin{align}
+    \nabla_K &= B^\top V_x x_t^\top \\
+    \nabla_k &= B^\top V_x
+  \end{align}
+  Since we have a full estimate of the dynamics and value function, we can also
+  do a line search rather than using a learning rate parameter. 
 \end{frame}
 
 \begin{frame}{Theoretical Guarantees?}
-  \fixme{TODO}
+  \begin{itemize}
+    \item There are not a lot of existing theoretical guarantees for empirical gradient controller updating
+    \item However, the usage of a line search and consistent dynamics/value approximation may lead to guarantees
+  \end{itemize}
 \end{frame}
-
 
 \subsection{Results}
 
 \begin{frame}{The Inverted Pendulum}
-  \fixme{TODO}
+  \begin{figure}
+    \centering
+    \begin{subfigure}{0.8\linewidth}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 10 0 0,clip]{assets/pendulum_value}
+      \vspace{-1em}
+    \end{subfigure}
+    \begin{subfigure}{0.2\linewidth}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 20]{assets/pendulum_traj_0}
+    \end{subfigure}
+    \begin{subfigure}{0.2\linewidth}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 20]{assets/pendulum_traj_1}
+    \end{subfigure}
+    \begin{subfigure}{0.2\linewidth}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 20]{assets/pendulum_traj_2}
+    \end{subfigure}
+    \begin{subfigure}{0.2\linewidth}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 20]{assets/pendulum_traj_3}
+    \end{subfigure}
+  \end{figure}
 \end{frame}
 
 \begin{frame}{Reference Point Placement Experiments}
-  \fixme{TODO}
+  \begin{figure}[htb]
+      \centering
+      \includegraphics[width=0.5\linewidth,trim=0 0 0 0,clip]{assets/combined_ref_exps}
+  \end{figure}
 \end{frame}
 
-\begin{frame}{Interpretability Experiments}
-  \fixme{TODO}
+\begin{frame}{Interpretability Experiments: Value Functions}
+  \begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c10_1_ep0}
+      \caption{0 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c10_1_ep1000}
+      \caption{1000 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c10_1_ep9900}
+      \caption{9900 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.05\linewidth}
+      \vspace{-2em}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/r10c10_colorbar}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c2_1_ep0}
+      \caption{0 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c2_1_ep1000}
+      \caption{1000 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/value_model_refcolexps_r10c2_1_ep9900}
+      \caption{9900 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.05\linewidth}
+      \vspace{-2em}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/r10c2_colorbar}
+    \end{subfigure}
+    \caption{Value functions computed by PARL over the course of training. Top Row: 10 rows/10 columns of reference points. Bottom Row: 10 rows/2 columns of reference points. }
+  \end{figure}
 \end{frame}
+
+\begin{frame}{Interpretability Experiments: Controllers}
+  \begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c10_1_ep0}
+      \caption{0 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c10_1_ep1000}
+      \caption{1000 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c10_1_ep9900}
+      \caption{9900 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.05\linewidth}
+      \vspace{-2em}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_colorbar}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c2_1_ep0}
+      \caption{0 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c2_1_ep1000}
+      \caption{1000 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.30\linewidth}
+      \centering
+      \includegraphics[width=0.9\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_refcolexps_r10c2_1_ep9900}
+      \caption{9900 episodes}
+    \end{subfigure}
+    \begin{subfigure}{0.05\linewidth}
+      \vspace{-2em}
+      \centering
+      \includegraphics[width=\linewidth,trim=0 0 0 0,clip]{assets/ref_plots/controller_colorbar}
+    \end{subfigure}
+    \caption{Controllers learned by PARL over the course of training. Top Row: 10 rows/10 columns of reference points. Bottom Row: 10 rows/2 columns of reference points.}
+  \end{figure}
+\end{frame}
+
 
 \section{Stability of PARL Controllers}
 
 \begin{frame}{Stability in Control}
-  \fixme{TODO}
+  Given a state $\bar{x}$ that we want to stabilize around, how do we design
+  controllers which drive the state of the system to $\bar{x}$, even in the
+  presence of disturbances?
+
+  Using PARL, we can approximately solve this problem by using the reward function
+  \begin{equation*}
+    R(x, u) = ||x - \bar{x}||
+  \end{equation*}
 \end{frame}
 
 \begin{frame}{Lyapunov Functions}
-  \fixme{TODO}
+  In discrete time, a \emph{Lyapunov function}\footfullcite{khalil2002nonlinear} $V: X \rightarrow \mathbb{R}$ is a function such that
+  \begin{align}
+    V(x) \geq 0 \text{ } \forall x \in X \\
+    V(\bar{x}) = 0  \\
+    V(x_{t+1}) - V(x_t) \leq 0
+  \end{align}
+  Such functions can be used to prove stability of a system around $\bar{x}$.
 \end{frame}
 
 \begin{frame}{Kinds of Stability}
-  \fixme{TODO}
+  In addition to basic Lyapunov stability, we have
+  \begin{itemize}
+    \item \emph{Asymptotic stability}: $V(x_{t+1}) - V(x) < 0$, and so the system monotonically proceeds to $\bar{x}$.
+    \item \emph{Exponential stability}: If $V(x)$ decreases faster than an exponential function of $x$, and so the system proceeds ``quickly'' to $\bar{x}$.
+  \end{itemize}
+  For this stability exploration, we only consider basic Lyapunov stability.
 \end{frame}
 
 \begin{frame}{Piecewise-Affine Lyapunov Functions}
-  \fixme{TODO}
+  In order to find piecewise-affine Lyapunov functions for the PARL-controlled
+  system, we solve a linear program in terms of the partition, piecewise-affine
+  dynamics estimate, and piecewise-affine controller. This LP comes from Rubagotti et al.\footfullcite{Rubagotti2012StabilityAO}
 \end{frame}
 
 \begin{frame}{Mesh Refinement}
-  \fixme{TODO}
+  \begin{algorithm}[H]
+      \DontPrintSemicolon
+      \KwInput{PWA controller system, maximum number of iterations}
+      \KwOutput{Estimate of the region of attraction $P$ and Lyapunov certificate of ES($P$)}
+      
+      \For{$i < $ maximum iterations}{
+          \If{$i > 1$}{
+              $\mathcal{X}_i = \mathcal{X}_{ij}, \Omega_{ip}$ \\
+              $\mathcal{X} = \bigcup \mathcal{X}_i$
+          }    
+          Compute the sets $\mathcal{X}_{ij}$ and $\Omega_{ip}$ \\
+          Attempt to solve the LP \\
+          \If{the LP has a solution}{
+              Estimate the region of attraction $P$ \\
+              \textbf{Return} the LP solution and $P$
+          }
+      }
+      
+      \textbf{Return} $P$ undefined
+
+      \caption{Stability Analysis}
+      \label{alg:stability_lp}
+  \end{algorithm}
 \end{frame}
 
 \begin{frame}{Inverted Pendulum Results}
-  \fixme{TODO}
+  \begin{figure}[t]
+      \centering
+      
+      \begin{subfigure}{0.9\linewidth}
+          \centering
+          \includegraphics[width=0.95\linewidth,trim=0 0 0 0,clip]{assets/lyapunov}
+      \end{subfigure}
+      \begin{subfigure}{0.08\linewidth}
+          \centering
+          \includegraphics[width=\linewidth,trim=0 0 0 0,clip]{assets/viridis_lyap.png}
+      \end{subfigure}
+  \end{figure}
 \end{frame}
 
 \section{Future Work}
 
 \begin{frame}{There's a lot}
-  \fixme{TODO}
+  \begin{enumerate}
+    \item PARL+Planning
+    \item Theoretical Results
+    \item Adaptive Partitioning
+    \item Integrating Uncertainty
+  \end{enumerate}
 \end{frame}
 
 \subsection{PARL+Planning}
 
 \begin{frame}{Nominal Models}
-  \fixme{TODO}
+  In most robotics applications, we have access to some kind of nominal model.
+  It's not reasonable to throw that model away when we want to do learning.
 \end{frame}
 
 \begin{frame}{Learning Errors}
-  \fixme{TODO}
+  Suppose that the real system is of the form
+  \begin{equation*}
+    x_{t+1} = F(x_t) + G(x_t)u_t
+  \end{equation*}
+  and we are given a nominal model of the form 
+  \begin{equation*}
+    \bar{x}_{t+1} = \bar{F}(x_t) + \bar{G}(x_t)u_t
+  \end{equation*}
+  Then we want to estimate $\hat{F}, \hat{G}$ such that 
+  \begin{align*}
+    x_{t+1} &\approx \bar{x}_{t+1} + \hat{F}(x_t) + \hat{G}(x_t)u_t \\
+    &\approx \left(\bar{F} + \hat{F}\right)(x_t) + \left(\bar{G} + \hat{G}\right)(x_t)u_t
+  \end{align*}
 \end{frame}
 
 \begin{frame}{Tracking Control and Model Updating}
-  \fixme{TODO}
+  We want to estimate these error dynamics with PARL, while simultaneously
+  using PARL to do learned trajectory-tracking control.
+
+  \begin{center}
+  \scalebox{0.7} {
+    \begin{algorithm}[H]
+      \DontPrintSemicolon
+      \KwInput{Nominal model $model$,\\ 
+      \quad Execution environment $env$,\\ 
+      \quad Planner $planner$,\\
+      \quad a deviation parameter $\epsilon$,\\
+      \quad $start$, $goal$}
+      
+      \SetKwFunction{ExecutePath}{ExecutePath}
+      \SetKwFunction{UpdateModel}{UpdateModel}
+      \SetKwFunction{Plan}{Plan}
+
+      \BlankLine
+      $planning\_model \leftarrow$ Aggregate nominal \& learned model, initialized by $model$ \\
+      \While{Not at goal} {
+          $p \leftarrow$ \Plan{$planner$, $planning\_model$, $start$, $goal$, $obstacles$} \\
+          $PARL \leftarrow$ PARL agent for use error state space around $p$ \\
+          
+          \ExecutePath{$env$, $p$, $PARL$, $\epsilon$}
+          
+          $start \leftarrow$ current state of $env$ \\
+          \UpdateModel{$planning\_model$, $PARL$, $p$}
+      }
+      \caption{PARL + Planning}
+      \label{alg:parl_planning}
+  \end{algorithm}
+  }
+  \end{center}
 \end{frame}
 
 \subsection{Theoretical Results}
 
 \begin{frame}{PARL Algorithmic Stability}
-  \fixme{TODO}
+  Establishing the stability of learned controllers is nice, but we also want
+  guarantees about the PARL algorithm itself. Under what conditions does it
+  converge to a near-optimal controller? 
 \end{frame}
 
 \begin{frame}{PARL Algorithmic Robustness}
-  \fixme{TODO}
+  What effect does environment stochasticity have on the PARL algorithm? How
+  can the learning algorithm be made robust to various forms of noise and
+  uncertainty?
 \end{frame}
 
 \subsection{Adaptive Partitioning}
 
 \begin{frame}{Extension to Varying Mesh}
-  \fixme{TODO}
+  One of the biggest criticisms of PARL is that its performance depends on
+  reference point placement. This raises the following questions:
+  \begin{itemize}
+    \item Can reference points be sampled from experienced data? (similar to a Gaussian Process)
+    \item Can reference points be adjusted during learning?
+    \item How does varying the mesh during learning affect stability and robustness?
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Adaptation Strategies}
-  \fixme{TODO}
+  Several strategies for adjusting the partition during learning are possible:
+  \begin{itemize}
+    \item Lloyd's algorithm\footfullcite{Kanungo2002AnEK}
+    \item Splitting/Merging in response to uncertainty
+    \item Hinging Hyperplanes\footfullcite{Sjberg1995NonlinearBM}
+  \end{itemize}
 \end{frame}
 
 \subsection{Explicit Uncertainty}
 
 \begin{frame}{Sources of Uncertainty}
-  \fixme{TODO}
+  RLS and LSTD provide measures of sample uncertainty in the form of inverse
+  sample covariance matrices. These can be incorporated into the controller
+  update step in order to make the PARL algorithm more robust. Uncertainty may
+  also be key to making PARL+Planning work.
 \end{frame}
 
-\begin{frame}{Integrating Uncertainty}
-  \fixme{TODO}
-\end{frame}
+\begin{frame}{Other Forms of Uncertainty}
+  We could conceive of a Bayesian PARL which makes use of priors over the
+  dynamics and controller in order to be even more robust. 
 
-\begin{frame}{Priors?}
-  \fixme{TODO}
+  \begin{itemize}
+    \item What form should these priors take? 
+    \item How would else would the algorithm need to change?
+    \item Are the theoretical guarantees for PARL strengthened?
+    \item Can the algorithm still be made efficient?
+  \end{itemize}
 \end{frame}
 
 \section{Questions?}
