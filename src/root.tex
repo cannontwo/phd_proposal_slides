@@ -43,7 +43,7 @@
   Why are industrial robots heavy, dangerous, and expensive? 
   \begin{itemize}
     \item Hardware robustness
-    \item Quasistatic assumptions
+    \item Quasistatic assumption
     \item Correction for noise by applying large torques
   \end{itemize}
 \end{frame}
@@ -67,7 +67,9 @@
 
 \begin{frame}{Big Data and Large Models}
   Deep learning leads us right back to expensive robots and questionable
-  generalization. Where is learning taking place?
+  generalization. 
+
+  Where is learning taking place?
 
   \begin{center}
     \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/arm_farm}
@@ -174,7 +176,7 @@
 
 \begin{frame}{Implicit Voronoi Partition}
   Explicit polygonal partitions are expensive, so we define an implicit one by
-  sampling \emph{reference points} and using a K-D Tree.\footfullcite{de1997computational}
+  sampling \emph{reference points} and using a K-D Tree to establish region membership.\footfullcite{de1997computational}
 
   \begin{center}
     \includegraphics[keepaspectratio,width=0.7\textwidth]{assets/pendulum_voronoi}
@@ -258,9 +260,8 @@
     \phi_i(x_t) &= \begin{cases} \begin{bmatrix} x_t \\ 1 \end{bmatrix} & \text{for } x \in \mathcal{V}_i \\ 0  &\text{otherwise}\end{cases} \\
     \phi_T(x_t) &= \phi_i(x_t) \text{, stacked for all $i \in I$}
   \end{align*}
-  This feature set defines a self-consistent piecewise-affine approximation to
-  the value function on the PARL partition. However, it is computationally
-  expensive to compute the LSTD approximation in this feature space. 
+  This feature set leads to a self-consistent piecewise-affine approximation to
+  the value function on the PARL partition.
 \end{frame}
 
 \subsection{Controller Optimization}
@@ -287,6 +288,7 @@
   \begin{itemize}
     \item There are not a lot of existing theoretical guarantees for empirical gradient controller updating
     \item However, the usage of a line search and consistent dynamics/value approximation may lead to guarantees
+    \item Convergence of the global, piecewise-affine controller will depend on partition
   \end{itemize}
 \end{frame}
 
@@ -600,7 +602,7 @@
   Several strategies for adjusting the partition during learning are possible:
   \begin{itemize}
     \item Lloyd's algorithm\footfullcite{Kanungo2002AnEK}
-    \item Splitting/Merging in response to uncertainty
+    \item Splitting/Merging regions in response to uncertainty
     \item Hinging Hyperplanes\footfullcite{Sjberg1995NonlinearBM}
   \end{itemize}
 \end{frame}
@@ -610,8 +612,9 @@
 \begin{frame}{Sources of Uncertainty}
   RLS and LSTD provide measures of sample uncertainty in the form of inverse
   sample covariance matrices. These can be incorporated into the controller
-  update step in order to make the PARL algorithm more robust. Uncertainty may
-  also be key to making PARL+Planning work.
+  update step in order to make the PARL algorithm more robust. 
+
+  Uncertainty may also be key to making PARL+Planning work.
 \end{frame}
 
 \begin{frame}{Other Forms of Uncertainty}
@@ -620,9 +623,8 @@
 
   \begin{itemize}
     \item What form should these priors take? 
-    \item How would else would the algorithm need to change?
-    \item Are the theoretical guarantees for PARL strengthened?
-    \item Can the algorithm still be made efficient?
+    \item How are theoretical guarantees changed in this setting?
+    \item Is this version of the algorithm still efficient?
   \end{itemize}
 \end{frame}
 
