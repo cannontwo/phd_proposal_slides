@@ -502,15 +502,11 @@
   \end{figure}
 \end{frame}
 
-\section{Future Work}
+\section{PARL in Reality}
 
-\begin{frame}{There's a lot}
-  \begin{enumerate}
-    \item PARL+Planning
-    \item Theoretical Results
-    \item Adaptive Partitioning
-    \item Integrating Uncertainty
-  \end{enumerate}
+\begin{frame}{Sim2Real}
+  Simulation is all well and good, but how does control learning fit into a
+  full robotics stack?
 \end{frame}
 
 \subsection{PARL+Planning}
@@ -523,7 +519,7 @@
 \begin{frame}{Learning Errors}
   Suppose that the real system is of the form
   \begin{equation*}
-    x_{t+1} = F(x_t) + G(x_t)u_t
+    x_{t+1} = f(x_t, u_t) = F(x_t) + G(x_t)u_t
   \end{equation*}
   and we are given a nominal model of the form 
   \begin{equation*}
@@ -536,96 +532,69 @@
   \end{align*}
 \end{frame}
 
-\begin{frame}{Tracking Control and Model Updating}
-  We want to estimate these error dynamics with PARL, while simultaneously
-  using PARL to do learned trajectory-tracking control.
-
-  \begin{center}
-  \scalebox{0.7} {
-    \begin{algorithm}[H]
-      \DontPrintSemicolon
-      \KwInput{Nominal model $model$,\\ 
-      \quad Execution environment $env$,\\ 
-      \quad Planner $planner$,\\
-      \quad a deviation parameter $\epsilon$,\\
-      \quad $start$, $goal$}
-      
-      \SetKwFunction{ExecutePath}{ExecutePath}
-      \SetKwFunction{UpdateModel}{UpdateModel}
-      \SetKwFunction{Plan}{Plan}
-
-      \BlankLine
-      $planning\_model \leftarrow$ Aggregate nominal \& learned model, initialized by $model$ \\
-      \While{Not at goal} {
-          $p \leftarrow$ \Plan{$planner$, $planning\_model$, $start$, $goal$, $obstacles$} \\
-          $PARL \leftarrow$ PARL agent for use error state space around $p$ \\
-          
-          \ExecutePath{$env$, $p$, $PARL$, $\epsilon$}
-          
-          $start \leftarrow$ current state of $env$ \\
-          \UpdateModel{$planning\_model$, $PARL$, $p$}
-      }
-      \caption{PARL + Planning}
-      \label{alg:parl_planning}
-  \end{algorithm}
-  }
-  \end{center}
+\begin{frame}{Tracking Control Formulation}
+  Given a nominal trajectory of the form $\bar{x}(t), \bar{u}(t)$, we can set
+  up a tracking control problem by transforming our state-space:
+  \begin{align*}
+    \tilde{x}_t &= x_t - \bar{x}(t) \\
+    \tilde{u}_t &= u_t - \bar{u}(t)
+  \end{align*}
+  This gives us an analogous linearization to the stabilization problem:
+  \begin{align*}
+    \tilde{x}_{t+1} &= f(x_t, u_t) - f(\bar{x}(t), \bar{u}(t)) \\
+                    &\approx A(t)\tilde{x}_t + B(t)\tilde{u}_t
+  \end{align*}
+  This time-varying linear approximation can be learned by PARL, assuming that
+  the PARL reference points move along with the trajectory-local frame.
 \end{frame}
 
-\subsection{Theoretical Results}
-
-\begin{frame}{PARL Algorithmic Stability}
-  Establishing the stability of learned controllers is nice, but we also want
-  guarantees about the PARL algorithm itself. Under what conditions does it
-  converge to a near-optimal controller? 
-\end{frame}
-
-\begin{frame}{PARL Algorithmic Robustness}
-  What effect does environment stochasticity have on the PARL algorithm? How
-  can the learning algorithm be made robust to various forms of noise and
-  uncertainty?
-\end{frame}
-
-\subsection{Adaptive Partitioning}
-
-\begin{frame}{Extension to Varying Mesh}
-  One of the biggest criticisms of PARL is that its performance depends on
-  reference point placement. This raises the following questions:
+\begin{frame}{RL for Tracking Control}
+  In order to do RL around a given trajectory, we need to modify the following
+  aspects of our MDP formulation:
   \begin{itemize}
-    \item Can reference points be sampled from experienced data? (similar to a Gaussian Process)
-    \item Can reference points be adjusted during learning?
-    \item How does varying the mesh during learning affect stability and robustness?
+    \item The state-space $X$ becomes the $\tilde{x}$ relative to a reference trajectory.
+    \item The control space $U$ becomes the $\tilde{u}$ relative to a reference trajectory.
+    \item The transition function $P$ changes to incorporate both the movement
+      of the frame from $\bar{x}(t)$ to $\bar{x}(t+1)$ and the actual system
+      dynamics.
+    \item The reward function $R$ must be changed to incorporate some notion of
+      instantaneous trajectory-tracking.
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{PARL Around Trajectory}
+  TODO (GIF or static images of references placed around trajectory)
+\end{frame}
+
+\begin{frame}{Open Questions}
+  \begin{itemize}
+      \item How should reference points be chosen around a trajectory?
+      \item How should learning be evaluated?
+      \item How should learned information be passed ``upward''?
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Adaptation Strategies}
-  Several strategies for adjusting the partition during learning are possible:
-  \begin{itemize}
-    \item Lloyd's algorithm\footfullcite{Kanungo2002AnEK}
-    \item Splitting/Merging regions in response to uncertainty
-    \item Hinging Hyperplanes\footfullcite{Sjberg1995NonlinearBM}
-  \end{itemize}
+\subsection{Safety During Learning}
+
+\begin{frame}{Two Approaches}
+  Even with a reference trajectory to help us avoid obstacles, safety needs to
+  be addressed for real-robot learning.
+  
+  In existing literature, there are two main approaches:
+  \begin{enumerate}
+      \item Incorporate safety into learning objective function.
+      \item Rely on a ``backup controller'' to rescue the system if it gets
+        close to an unsafe region.
+  \end{enumerate}
 \end{frame}
 
-\subsection{Explicit Uncertainty}
-
-\begin{frame}{Sources of Uncertainty}
-  RLS and LSTD provide measures of sample uncertainty in the form of inverse
-  sample covariance matrices. These can be incorporated into the controller
-  update step in order to make the PARL algorithm more robust. 
-
-  Uncertainty may also be key to making PARL+Planning work.
+\begin{frame}{Safety via Optimization}
+  TODO
 \end{frame}
 
-\begin{frame}{Other Forms of Uncertainty}
-  We could conceive of a Bayesian PARL which makes use of priors over the
-  dynamics and controller in order to be even more robust. 
-
-  \begin{itemize}
-    \item What form should these priors take? 
-    \item How are theoretical guarantees changed in this setting?
-    \item Is this version of the algorithm still efficient?
-  \end{itemize}
+\begin{frame}{Safety via Backup Controller}
+  TODO
 \end{frame}
 
 \section{Questions?}
