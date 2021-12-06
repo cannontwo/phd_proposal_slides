@@ -566,7 +566,8 @@
 
 \begin{frame}{PARL Around Trajectory}
   \begin{figure}
-    \includemedia[width=0.6\linewidth,height=0.2\linewidth,keepaspectratio,final,activate=pageopen,flashvars={}]{}{https://www.youtube.com/watch?v=x69NTirI37M}
+    \centering
+    \includegraphics[width=0.8\linewidth]{assets/traj_vals_thumb.png}
   \end{figure}
 \end{frame}
 
@@ -593,19 +594,33 @@
 \end{frame}
 
 \begin{frame}{Safety via Optimization}
-  TODO (Add images)
-  \begin{itemize}
-    \item Safety as an additional term in reward function (TODO add refs)
-    \item Safety as a constraint on allowed actions, resolved via optimization (TODO add refs)
-  \end{itemize}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+    \begin{figure}
+      \centering
+      \includegraphics[width=\linewidth]{assets/policy_projection.png}
+    \end{figure}
+  \end{column}
+
+  \begin{column}{0.5\textwidth}
+    \begin{itemize}
+      \item Safety as an additional term in reward function
+      \item Safety as a constraint on allowed actions, resolved via optimization 
+    \end{itemize}
+  \end{column}\footfullcite{7039601}
+  \end{columns}
+
 \end{frame}
 
 \begin{frame}{Safety via Backup Controller}
-  TODO (Add images)
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{assets/safety_region.png}
+  \end{figure}
+  Using an initial controller, the learning process safe
+  throughout. \footfullcite{Berkenkamp2017SafeMR}
 
-  Using an initial, trusted controller, the learning process can be made safe throughout.
-
-  But where does this controller come from? How does this interact with the necessity for learning?
+  But where does this controller come from? What are we learning?
 \end{frame}
 
 \section{Questions?}
