@@ -22,10 +22,10 @@
 \definecolor{turqbrown}{RGB}{92,80,60}
 \setbeamercolor{progress bar}{fg=turquoise}
 \setbeamercolor{normal text}{fg=turqbrown}
-\title{Research Update}
-\author{W. Cannon Lewis II}
+\title{Safe and Efficient Robotic Control via Piecewise-Affine Reinforcement Learning}
+\author{\textbf{W. Cannon Lewis II}, Marzia Cescon, Lydia Kavraki}
 
-\date{December 6, 2021}
+\date{February 21, 2022}
 
 \begin{document}
 \begin{frame}
@@ -38,15 +38,6 @@
   Industrial robots are heavy, dangerous, and expensive
 
   \includegraphics[keepaspectratio,width=\textwidth]{assets/factory_robots}
-\end{frame}
-
-\begin{frame}{Hardware Solving Software}
-  Why are industrial robots heavy, dangerous, and expensive? 
-  \begin{itemize}
-    \item Hardware robustness
-    \item Quasistatic assumption
-    \item Correction for noise by applying large torques
-  \end{itemize}
 \end{frame}
 
 \begin{frame}{Beyond Industrial Robots}
@@ -77,14 +68,6 @@
   \end{center}
 \end{frame}
 
-\begin{frame}{How Safe Is Your Model?}
-  \begin{itemize}
-    \item Deep neural network controllers are not interpretable or verifiable
-    \item Generalization is not well understood
-    \item In any new situation, these controllers may be arbitrarily bad
-  \end{itemize}
-\end{frame}
-
 \section{Reinforcement Learning}
 
 \begin{frame}{RL Basics}
@@ -111,24 +94,6 @@
   \end{equation}
 \end{frame}
 
-\begin{frame}{Policy Iteration}
-  \begin{algorithm}[H]
-      \DontPrintSemicolon
-      \KwInput{An MDP $(X, U, R, P)$}
-      \KwOutput{A policy $\pi$ optimizing rewards in the MDP}
-
-      Initialize policy $\pi$ and $V_\pi$ \\
-      \While {$\pi$ not stationary} {
-        Estimate $V_\pi$ (\textbf{Policy Evaluation}) \\
-        Set $\pi(x_t) = \argmax_{u_t} \left[r_t +  \gamma V_\pi(x_{t+1})\right]\ \forall x_t \in X$ \\ 
-      }
-
-      \textbf{Return} $\pi$
-
-      \caption{Policy Iteration}
-      \label{alg:stability_policy_iteration}
-  \end{algorithm}
-\end{frame}
 
 \section{PARL in Three Parts}
 \begin{frame}{Piecewise-Affine Reinforcement Learning}
@@ -203,33 +168,6 @@
   which can be estimated from data using \emph{Recursive Least Squares}
 \end{frame}
 
-\begin{frame}{Recursive Least Squares}
-  The RLS filter is defined by
-  \begin{align*}
-    \phi_T &= \left[\begin{array}{l}x_t \\ u_t \end{array}\right] \\
-    y_T &= x_{t+1}\\
-    P_T &= P_{T-1} - \frac{P_{T-1}\phi_T \phi_T^\top P_{T-1}}{1 + \phi_T^\top P_{T-1} \phi_T} &\text{\emph{(Inverse sample covariance)}} \\
-    \theta_T &= \theta_{T-1} + P_T \phi_T \left[y_T - \phi_T^\top \theta_{T-1} \right] &\text{\emph{(RLS parameter estimate)}}
-  \end{align*}
-
-  Note $\theta_T = \begin{bmatrix}\hat{A} \\ \hat{B}\end{bmatrix}$, and $\hat{c}$ can be estimated in a similar way.\footnote{See \url{http://cannontwo.com/assets/rls_notes.pdf}}
-\end{frame}
-
-\begin{frame}{Theoretical Guarantees}
-  Assuming white noise corruption of the $y_T$ values, RLS converges almost
-  surely to the true parameters. It can also be modified to deal with white
-  noise corrupting $\phi_T$. However, $P_T$ must always have full rank.
-\end{frame}
-
-\begin{frame}{Practical Implementation}
-  There are several implementation details:
-  \begin{itemize}
-    \item $P_0$ must be chosen arbitrarily
-    \item Estimating $\hat{c}$ requires a little additional bookkeeping
-    \item Forgetting factor $\lambda$ for time-varying parameters
-  \end{itemize}
-\end{frame}
-
 \subsection{Value Function Approximation}
 
 \begin{frame}{Local Value Function Approximation}
@@ -238,21 +176,6 @@
     \hat{V}^{\pi}_i(x_t) = V_0 + V_x^\top x_t
   \end{equation}
   which can be estimated using \emph{Least Squares Temporal Difference Learning}.
-\end{frame}
-
-\begin{frame}{Least Squares Temporal Difference Learning}
-  The LSTD filter is a modified RLS filter, defined by:
-  \begin{align*}
-    \Delta &= \phi_T(x_t) - \gamma \phi_T(x_{t+1})\\
-    C_{t+1} &= C_T - \frac{C_T \phi_T(x_t) \Delta^\top C_T}{1 + \Delta^\top C_t \phi_T(x_t)}\\
-    d_{t+1} &= d_T + \phi_T(x_t)r_t
-  \end{align*}
-  and the corresponding parameters are given by $C_T d_T$, from which $V_0$ and $V_x$ can be extracted for each partition region.
-\end{frame}
-
-\begin{frame}{LSTD Theoretical Guarantees}
-  LSTD has the same sort of theoretical results as the RLS filter, except that
-  additional decorrelation conditions apply between $\Delta$ and $\phi_T(x_t)$.
 \end{frame}
 
 \begin{frame}{Practical Implementation}
@@ -267,14 +190,12 @@
 
 \subsection{Controller Optimization}
 
-\begin{frame}{Local Linear Controllers}
-  We optimize a piecewise-affine controller in terms of local linear controllers defined by
+\begin{frame}{Gradient-based Controller Updating}
+    We optimize a piecewise-affine controller in terms of local linear controllers defined by
   \begin{equation}
     \pi_i(x_t) = Kx_t + k
   \end{equation}
-\end{frame}
 
-\begin{frame}{Gradient-based Controller Updating}
   It is easy to compute empirical gradients of $V$ with respect to the local
   controller parameters $K$ and $k$ that apply at a state $x_t$:
   \begin{align}
@@ -283,14 +204,6 @@
   \end{align}
   Since we have a full estimate of the dynamics and value function, we can also
   do a line search rather than using a learning rate parameter. 
-\end{frame}
-
-\begin{frame}{Theoretical Guarantees?}
-  \begin{itemize}
-    \item There are not a lot of existing theoretical guarantees for empirical gradient controller updating
-    \item However, the usage of a line search and consistent dynamics/value approximation may lead to guarantees
-    \item Convergence of the global, piecewise-affine controller will depend on partition
-  \end{itemize}
 \end{frame}
 
 \subsection{Results}
@@ -427,7 +340,7 @@
 \section{Stability of PARL Controllers}
 
 \begin{frame}{Stability in Control}
-  Given a state $\bar{x}$ that we want to stabilize around, how do we design
+  Given a state $\bar{x}$ that we want a system to stay near, how do we design
   controllers which drive the state of the system to $\bar{x}$, even in the
   presence of disturbances?
 
@@ -444,22 +357,10 @@
     V(\bar{x}) = 0  \\
     V(x_{t+1}) - V(x_t) \leq 0
   \end{align}
-  Such functions can be used to prove stability of a system around $\bar{x}$.
-\end{frame}
 
-\begin{frame}{Kinds of Stability}
-  In addition to basic Lyapunov stability, we have
-  \begin{itemize}
-    \item \emph{Asymptotic stability}: $V(x_{t+1}) - V(x) < 0$, and so the system monotonically proceeds to $\bar{x}$.
-    \item \emph{Exponential stability}: If $V(x)$ decreases faster than an exponential function of $x$, and so the system proceeds ``quickly'' to $\bar{x}$.
-  \end{itemize}
-  For this stability exploration, we only consider basic Lyapunov stability.
-\end{frame}
-
-\begin{frame}{Piecewise-Affine Lyapunov Functions}
-  In order to find piecewise-affine Lyapunov functions for the PARL-controlled
-  system, we solve a linear program in terms of the partition, piecewise-affine
-  dynamics estimate, and piecewise-affine controller. This LP comes from Rubagotti et al.\footfullcite{Rubagotti2012StabilityAO}
+  We can find piecewise-affine Lyapunov functions by repeatedly solving a
+  linear program~\footfullcite{Rubagotti2012StabilityAO} and refining the PARL
+  partition.
 \end{frame}
 
 \begin{frame}{Mesh Refinement}
@@ -517,38 +418,6 @@
   It's not reasonable to throw that model away when we want to do learning.
 \end{frame}
 
-\begin{frame}{Learning Errors}
-  Suppose that the real system is of the form
-  \begin{equation*}
-    x_{t+1} = f(x_t, u_t) = F(x_t) + G(x_t)u_t
-  \end{equation*}
-  and we are given a nominal model of the form 
-  \begin{equation*}
-    \bar{x}_{t+1} = \bar{F}(x_t) + \bar{G}(x_t)u_t
-  \end{equation*}
-  Then we want to estimate $\hat{F}, \hat{G}$ such that 
-  \begin{align*}
-    x_{t+1} &\approx \bar{x}_{t+1} + \hat{F}(x_t) + \hat{G}(x_t)u_t \\
-    &\approx \left(\bar{F} + \hat{F}\right)(x_t) + \left(\bar{G} + \hat{G}\right)(x_t)u_t
-  \end{align*}
-\end{frame}
-
-\begin{frame}{Tracking Control Formulation}
-  Given a nominal trajectory of the form $\bar{x}(t), \bar{u}(t)$, we can set
-  up a tracking control problem by transforming our state-space:
-  \begin{align*}
-    \tilde{x}_t &= x_t - \bar{x}(t) \\
-    \tilde{u}_t &= u_t - \bar{u}(t)
-  \end{align*}
-  This gives us an analogous linearization to the stabilization problem:
-  \begin{align*}
-    \tilde{x}_{t+1} &= f(x_t, u_t) - f(\bar{x}(t), \bar{u}(t)) \\
-                    &\approx A(t)\tilde{x}_t + B(t)\tilde{u}_t
-  \end{align*}
-  This time-varying linear approximation can be learned by PARL, assuming that
-  the PARL reference points move along with the trajectory-local frame.
-\end{frame}
-
 \begin{frame}{RL for Tracking Control}
   In order to do RL around a given trajectory, we need to modify the following
   aspects of our MDP formulation:
@@ -587,10 +456,98 @@
   
   In existing literature, there are two main approaches:
   \begin{enumerate}
-      \item Incorporate safety into learning objective function.
+      \item Incorporate safety into learning objective function.~\footfullcite{7039601}
       \item Rely on a ``backup controller'' to rescue the system if it gets
-        close to an unsafe region.
+        close to an unsafe region.~\footfullcite{Berkenkamp2017SafeMR}
   \end{enumerate}
+\end{frame}
+
+
+\section{Questions?}
+
+\section*{Backup}
+
+\begin{frame}{Policy Iteration}
+  \begin{algorithm}[H]
+      \DontPrintSemicolon
+      \KwInput{An MDP $(X, U, R, P)$}
+      \KwOutput{A policy $\pi$ optimizing rewards in the MDP}
+
+      Initialize policy $\pi$ and $V_\pi$ \\
+      \While {$\pi$ not stationary} {
+        Estimate $V_\pi$ (\textbf{Policy Evaluation}) \\
+        Set $\pi(x_t) = \argmax_{u_t} \left[r_t +  \gamma V_\pi(x_{t+1})\right]\ \forall x_t \in X$ \\ 
+      }
+
+      \textbf{Return} $\pi$
+
+      \caption{Policy Iteration}
+      \label{alg:stability_policy_iteration}
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{Recursive Least Squares}
+  The RLS filter is defined by
+  \begin{align*}
+    \phi_T &= \left[\begin{array}{l}x_t \\ u_t \end{array}\right] \\
+    y_T &= x_{t+1}\\
+    P_T &= P_{T-1} - \frac{P_{T-1}\phi_T \phi_T^\top P_{T-1}}{1 + \phi_T^\top P_{T-1} \phi_T} &\text{\emph{(Inverse sample covariance)}} \\
+    \theta_T &= \theta_{T-1} + P_T \phi_T \left[y_T - \phi_T^\top \theta_{T-1} \right] &\text{\emph{(RLS parameter estimate)}}
+  \end{align*}
+
+  Note $\theta_T = \begin{bmatrix}\hat{A} \\ \hat{B}\end{bmatrix}$, and $\hat{c}$ can be estimated in a similar way.\footnote{See \url{http://cannontwo.com/assets/rls_notes.pdf}}
+\end{frame}
+
+\begin{frame}{Least Squares Temporal Difference Learning}
+
+  The LSTD filter is a modified RLS filter, defined by:
+  \begin{align*}
+    \Delta &= \phi_T(x_t) - \gamma \phi_T(x_{t+1})\\
+    C_{t+1} &= C_T - \frac{C_T \phi_T(x_t) \Delta^\top C_T}{1 + \Delta^\top C_t \phi_T(x_t)}\\
+    d_{t+1} &= d_T + \phi_T(x_t)r_t
+  \end{align*}
+  and the corresponding parameters are given by $C_T d_T$, from which $V_0$ and $V_x$ can be extracted for each partition region.
+\end{frame}
+
+\begin{frame}{Kinds of Stability}
+  In addition to basic Lyapunov stability, we have
+  \begin{itemize}
+    \item \emph{Asymptotic stability}: $V(x_{t+1}) - V(x) < 0$, and so the system monotonically proceeds to $\bar{x}$.
+    \item \emph{Exponential stability}: If $V(x)$ decreases faster than an exponential function of $x$, and so the system proceeds ``quickly'' to $\bar{x}$.
+  \end{itemize}
+  For this stability exploration, we only consider basic Lyapunov stability.
+\end{frame}
+
+\begin{frame}{Learning Errors}
+  Suppose that the real system is of the form
+  \begin{equation*}
+    x_{t+1} = f(x_t, u_t) = F(x_t) + G(x_t)u_t
+  \end{equation*}
+  and we are given a nominal model of the form 
+  \begin{equation*}
+    \bar{x}_{t+1} = \bar{F}(x_t) + \bar{G}(x_t)u_t
+  \end{equation*}
+  Then we want to estimate $\hat{F}, \hat{G}$ such that 
+  \begin{align*}
+    x_{t+1} &\approx \bar{x}_{t+1} + \hat{F}(x_t) + \hat{G}(x_t)u_t \\
+    &\approx \left(\bar{F} + \hat{F}\right)(x_t) + \left(\bar{G} + \hat{G}\right)(x_t)u_t
+  \end{align*}
+\end{frame}
+
+\begin{frame}{Tracking Control Formulation}
+  Given a nominal trajectory of the form $\bar{x}(t), \bar{u}(t)$, we can set
+  up a tracking control problem by transforming our state-space:
+  \begin{align*}
+    \tilde{x}_t &= x_t - \bar{x}(t) \\
+    \tilde{u}_t &= u_t - \bar{u}(t)
+  \end{align*}
+  This gives us an analogous linearization to the stabilization problem:
+  \begin{align*}
+    \tilde{x}_{t+1} &= f(x_t, u_t) - f(\bar{x}(t), \bar{u}(t)) \\
+                    &\approx A(t)\tilde{x}_t + B(t)\tilde{u}_t
+  \end{align*}
+  This time-varying linear approximation can be learned by PARL, assuming that
+  the PARL reference points move along with the trajectory-local frame.
 \end{frame}
 
 \begin{frame}{Safety via Optimization}
@@ -622,7 +579,5 @@
 
   But where does this controller come from? What are we learning?
 \end{frame}
-
-\section{Questions?}
 
 \end{document}
