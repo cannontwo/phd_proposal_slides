@@ -5,6 +5,9 @@
 \usepackage{media9}
 \addbibresource{bib/main.bib}
 
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, shapes.misc, arrows, positioning}
+
 \newcommand\fixme[2][FIXME]{\textcolor{red}{\textbf{#1:} #2}}
 \usepackage[labelsep=space]{caption}
 \usepackage[ruled, vlined, linesnumbered]{algorithm2e}
@@ -45,15 +48,6 @@
 
   \begin{center}
     \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/spotmini}
-  \end{center}
-\end{frame}
-
-\begin{frame}{Learning to the Rescue?}
-  There has been a lot of interest in learning for robot control and motion
-  planning recently.
-
-  \begin{center}
-    \includegraphics[keepaspectratio,width=\textwidth]{assets/openai_hand}
   \end{center}
 \end{frame}
 
@@ -128,16 +122,13 @@
 
 \subsection{Partitioning}
 
-\begin{frame}{What is a Partition?}
-  We can loosely define a partition with indexing set $I$ of the state space $X$ as
-  \begin{equation}
-    P_I = \left\{\mathcal{V}_i \subseteq S\ \middle\vert 
-      \begin{array}{l}
-        i \in I, \\
-        \bigcup_{i \in I}\mathcal{V}_i = S, \\
-        \mathcal{V}_i \cap \mathcal{V}_j = \emptyset, \forall i \neq j
-      \end{array}\right\}
-  \end{equation}
+\begin{frame}{Connections to Deep Neural Networks}
+  Common deep neural network structures define implicit generalized Voronoi
+  diagrams and piecewise-affine operators.\footfullcite{Balestriero2019TheGO} 
+
+  \begin{center}
+    \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/subdivision}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Implicit Voronoi Partition}
@@ -149,33 +140,17 @@
   \end{center}
 \end{frame}
 
-\begin{frame}{Connections to Deep Neural Networks}
-  Common deep neural network structures define implicit generalized Voronoi
-  diagrams and piecewise-affine operators.\footfullcite{Balestriero2019TheGO} 
 
-  \begin{center}
-    \includegraphics[keepaspectratio,width=0.8\textwidth]{assets/subdivision}
-  \end{center}
-\end{frame}
+\subsection{Dynamics and Value Estimation}
 
-\subsection{Dynamics Estimation}
+\begin{frame}{Local Linear Dynamics and Value Function}
+  We make a linear approximation to the local dynamics and value:
+  \begin{align}
+    \hat{F}_{i}(\tilde{x}_t, u_t) &= \hat{A}x_t + \hat{B}u_t + c \\
+    \hat{V}^{\pi}_i(x_t) &= V_0 + V_x^\top x_t
+  \end{align}
 
-\begin{frame}{Local Linear Dynamics}
-  We make a linear approximation to the local dynamics:
-  \begin{equation}
-    \hat{F}_{i}(\tilde{x}_t, u_t) = \hat{A}x_t + \hat{B}u_t + c 
-  \end{equation}
-  which can be estimated from data using \emph{Recursive Least Squares}
-\end{frame}
-
-\subsection{Value Function Approximation}
-
-\begin{frame}{Local Value Function Approximation}
-  Similar to the dynamics approximation, we make a linear approximation of the local dynamics:
-  \begin{equation}
-    \hat{V}^{\pi}_i(x_t) = V_0 + V_x^\top x_t
-  \end{equation}
-  which can be estimated using \emph{Least Squares Temporal Difference Learning}.
+  These can be estimated with \emph{Recursive Least Squares} and \emph{Least Squares Temporal Difference Learning} (LSTD).
 \end{frame}
 
 \begin{frame}{Practical Implementation}
@@ -191,19 +166,17 @@
 \subsection{Controller Optimization}
 
 \begin{frame}{Gradient-based Controller Updating}
-    We optimize a piecewise-affine controller in terms of local linear controllers defined by
+    Local linear controllers defined by
   \begin{equation}
     \pi_i(x_t) = Kx_t + k
   \end{equation}
 
-  It is easy to compute empirical gradients of $V$ with respect to the local
-  controller parameters $K$ and $k$ that apply at a state $x_t$:
+  Empirical gradients of $V$ with respect to the local controller parameters:
   \begin{align}
     \nabla_K &= B^\top V_x x_t^\top \\
     \nabla_k &= B^\top V_x
   \end{align}
-  Since we have a full estimate of the dynamics and value function, we can also
-  do a line search rather than using a learning rate parameter. 
+  Since we have a full estimate of the dynamics and value function, we do a line search rather than using a learning rate parameter. 
 \end{frame}
 
 \subsection{Results}
@@ -367,31 +340,6 @@
   partition.
 \end{frame}
 
-\begin{frame}{Mesh Refinement}
-  \begin{algorithm}[H]
-      \DontPrintSemicolon
-      \KwInput{PWA controller system, maximum number of iterations}
-      \KwOutput{Estimate of the region of attraction $P$ and Lyapunov certificate of ES($P$)}
-      
-      \For{$i < $ maximum iterations}{
-          \If{$i > 1$}{
-              $\mathcal{X}_i = \mathcal{X}_{ij}, \Omega_{ip}$ \\
-              $\mathcal{X} = \bigcup \mathcal{X}_i$
-          }    
-          Compute the sets $\mathcal{X}_{ij}$ and $\Omega_{ip}$ \\
-          Attempt to solve the LP \\
-          \If{the LP has a solution}{
-              Estimate the region of attraction $P$ \\
-              \textbf{Return} the LP solution and $P$
-          }
-      }
-      
-      \textbf{Return} $P$ undefined
-
-      \caption{Stability Analysis}
-      \label{alg:stability_lp}
-  \end{algorithm}
-\end{frame}
 
 \begin{frame}{Inverted Pendulum Results}
   \begin{figure}[t]
@@ -410,31 +358,33 @@
 
 \section{PARL in Reality}
 
-\begin{frame}{Sim2Real}
-  Simulation is all well and good, but how does control learning fit into a
-  full robotics stack?
-\end{frame}
-
 \subsection{PARL+Planning}
 
-\begin{frame}{Nominal Models}
-  In most robotics applications, we have access to some kind of nominal model.
-  It's not reasonable to throw that model away when we want to do learning.
-\end{frame}
+\begin{frame}{PARL in a Robotics Stack}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      In most robotics applications, we have access to some kind of nominal
+      model.  It's not reasonable to throw that model away when we want to do
+      learning.
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{tikzpicture}[node distance=1em, thick, ->, >=stealth, auto]
+        \tikzstyle{arrow} = [thick, ->, >=stealth]
+        \tikzstyle{block} = [draw, rounded rectangle, fill=teal!30, inner sep=0.5em]
 
-\begin{frame}{RL for Tracking Control}
-  In order to do RL around a given trajectory, we need to modify the following
-  aspects of our MDP formulation:
-  \begin{itemize}
-    \item The state-space $X$ becomes the $\tilde{x}$ relative to a reference trajectory.
-    \item The control space $U$ becomes the $\tilde{u}$ relative to a reference trajectory.
-    \item The transition function $P$ changes to incorporate both the movement
-      of the frame from $\bar{x}(t)$ to $\bar{x}(t+1)$ and the actual system
-      dynamics.
-    \item The reward function $R$ must be changed to incorporate some notion of
-      instantaneous trajectory-tracking.
-  \end{itemize}
+        \node (top) [draw, block, fill=gray!30] {System Model};
+        \node (planning) [below=of top, block, fill=gray!30] {Motion Planning};
+        \node (control) [below=of planning, block] {Control};
+        \node (learning) [below=of control, block] {Learning};
 
+        \path [every node]
+          (top) edge node [right] {} (planning)
+          (planning) edge node [right] {} (control)
+          (control) edge node [right] {} (learning)
+          (learning) edge[bend right=75, dotted] node [right] {PARL?} (top);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{PARL Around Trajectory}
@@ -478,6 +428,18 @@
 \end{frame}
 
 \section*{Backup}
+
+\begin{frame}{What is a Partition?}
+  We can loosely define a partition with indexing set $I$ of the state space $X$ as
+  \begin{equation}
+    P_I = \left\{\mathcal{V}_i \subseteq S\ \middle\vert 
+      \begin{array}{l}
+        i \in I, \\
+        \bigcup_{i \in I}\mathcal{V}_i = S, \\
+        \mathcal{V}_i \cap \mathcal{V}_j = \emptyset, \forall i \neq j
+      \end{array}\right\}
+  \end{equation}
+\end{frame}
 
 \begin{frame}{Policy Iteration}
   \begin{algorithm}[H]
@@ -528,6 +490,32 @@
     \item \emph{Exponential stability}: If $V(x)$ decreases faster than an exponential function of $x$, and so the system proceeds ``quickly'' to $\bar{x}$.
   \end{itemize}
   For this stability exploration, we only consider basic Lyapunov stability.
+\end{frame}
+
+\begin{frame}{Mesh Refinement}
+  \begin{algorithm}[H]
+      \DontPrintSemicolon
+      \KwInput{PWA controller system, maximum number of iterations}
+      \KwOutput{Estimate of the region of attraction $P$ and Lyapunov certificate of ES($P$)}
+      
+      \For{$i < $ maximum iterations}{
+          \If{$i > 1$}{
+              $\mathcal{X}_i = \mathcal{X}_{ij}, \Omega_{ip}$ \\
+              $\mathcal{X} = \bigcup \mathcal{X}_i$
+          }    
+          Compute the sets $\mathcal{X}_{ij}$ and $\Omega_{ip}$ \\
+          Attempt to solve the LP \\
+          \If{the LP has a solution}{
+              Estimate the region of attraction $P$ \\
+              \textbf{Return} the LP solution and $P$
+          }
+      }
+      
+      \textbf{Return} $P$ undefined
+
+      \caption{Stability Analysis}
+      \label{alg:stability_lp}
+  \end{algorithm}
 \end{frame}
 
 \begin{frame}{Learning Errors}
